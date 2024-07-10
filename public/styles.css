@@ -1,0 +1,15 @@
+.centered-content {
+    text-align: center;
+}
+
+.centered-content form {
+    display: inline-block;
+    text-align: left; /* Align the content inside the form to the left */
+}
+
+.centered-content label,
+.centered-content input,
+.centered-content button {
+    display: block; /* Display each element on its own line */
+    margin: 5px 0; /* Add some vertical spacing between elements */
+}

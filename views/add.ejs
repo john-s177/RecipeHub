@@ -1,0 +1,20 @@
+<%- include("partials/header.ejs")   %>
+
+<form action="/submitRecipe" method="POST" class="mt-4">
+    <div class="mb-3">
+        <label for="name" class="form-label">Name:</label>
+        <input type="text" id="name" name="name" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label for="ingredients" class="form-label">Ingredients:</label>
+        <textarea id="ingredients" name="ingredients" class="form-control" rows="4" required></textarea>
+    </div>
+    <div class="mb-3">
+        <label for="instructions" class="form-label">Instructions:</label>
+        <textarea id="instructions" name="instructions" class="form-control" rows="4" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+
+<%- include("partials/footer.ejs")   %>

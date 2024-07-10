@@ -1,0 +1,16 @@
+<%- include("partials/header.ejs")   %>
+<div class="centered-content">
+    <form action="/removeRecipe" method="POST" class="mt-4">
+        <div class="mb-3">
+            <label for="recipeName" class="form-label">Enter Recipe Name:</label>
+            <input type="text" id="recipeName" name="recipeName" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Remove Recipe</button>
+    </form>
+    
+</div>
+<% if (locals.response) { %>
+    <h2><%= locals.response %></h2> ->
+<% } %>
+
+<%- include("partials/footer.ejs")   %>
