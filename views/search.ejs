@@ -1,8 +1,9 @@
 <%- include("partials/header.ejs") %>
 
 <% if (locals.recipe && recipe.length > 0) { %>
-    <% for (var i = 0; i < recipe.length; i++) { %>
     <h2>Search Results:</h2>
+    <% for (var i = 0; i < recipe.length; i++) { %>
+    
     <div class="px-4 py-5 my-5 text-center">
         <h1 class="display-5 fw-bold text-body-emphasis"><%= recipe[i].name %></h1>
         <div class="col-lg-6 mx-auto">
