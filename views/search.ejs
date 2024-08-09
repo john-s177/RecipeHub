@@ -1,7 +1,7 @@
 <%- include("partials/header.ejs") %>
 
 <% if (locals.recipe && recipe.length > 0) { %>
-    <h2>Search Results:</h2>
+    <h3 style="text-align: center;">Search Results:</h3>
     <% for (var i = 0; i < recipe.length; i++) { %>
     
     <div class="px-4 py-5 my-5 text-center">
@@ -23,7 +23,7 @@
     </div>
     </div>
 <% } else { %>
-    <h1>No Recipes Found</h1>
+    <h3 style="text-align: center;">No Recipes Found</h3>
 <% } %>
 
 <%- include("partials/footer.ejs") %>

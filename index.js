@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import mysql from 'mysql2/promise';
 
 const app = express();
+
 const port = 3000;
 
 const db = await mysql.createConnection({
@@ -13,12 +14,13 @@ const db = await mysql.createConnection({
 });
 
 app.use(express.static("public"));
+
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.set('view engine', 'ejs');
 
 app.get("/", (req, res) => {
-    res.render("index.ejs");
+    res.render("index.ejs");    
 });
 
 app.get("/recipes", async (req, res) => {
@@ -32,13 +34,13 @@ app.get("/add", (req, res) => {
 
 app.get("/search", async (req, res) => {
     try {
-        const recipeName = req.query.q; // Extracting the search query from req.query.q
+        const recipeName = req.query.q; 
         const [results] = await db.execute('SELECT * FROM recipes WHERE name LIKE ?', [`%${recipeName}%`]);
 
         if (results.length > 0) {
             res.render("search.ejs", { recipe: results });
         } else {
-            res.render("search.ejs", { recipe: [] }); // Sending an empty array if no recipes found
+            res.render("search.ejs", { recipe: [] }); 
         }
     } catch (error) {
         console.error("Error fetching recipes:", error);
@@ -100,7 +102,6 @@ app.post('/editRecipe/:id', async (req, res) => {
 
 app.post("/editRecipe", async (req, res) => {
     const recipeName = req.body.recipeName;
-    // Implement logic to find the recipe by name from your database
     try {
         const [rows] = await db.execute('SELECT * FROM recipes WHERE name = ?', [recipeName]);
         if (rows.length > 0) {

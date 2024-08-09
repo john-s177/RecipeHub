@@ -1,20 +1,24 @@
 <%- include("partials/header.ejs")   %>
 
-<form action="/submitRecipe" method="POST" class="mt-4">
-    <div class="mb-3">
-        <label for="name" class="form-label">Name:</label>
-        <input type="text" id="name" name="name" class="form-control" autocomplete="off" required>
-    </div>
-    <div class="mb-3">
-        <label for="ingredients" class="form-label">Ingredients:</label>
-        <textarea id="ingredients" name="ingredients" class="form-control" rows="4" autocomplete="off" required></textarea>
-    </div>
-    <div class="mb-3">
-        <label for="instructions" class="form-label">Instructions:</label>
-        <textarea id="instructions" name="instructions" class="form-control" autocomplete="off" rows="4" required></textarea>
-    </div>
-    <button type="submit" class="btn btn-primary">Submit</button>
-</form>
+<div class="d-flex justify-content-center mt-4">
+    <form action="/submitRecipe" method="POST" class="w-50">
+        <div class="mb-3">
+            <label for="name" class="form-label">Name:</label>
+            <input type="text" id="name" name="name" class="form-control" autocomplete="off" required>
+        </div>
+        <div class="mb-3">
+            <label for="ingredients" class="form-label">Ingredients:</label>
+            <textarea id="ingredients" name="ingredients" class="form-control" rows="4" autocomplete="off" required></textarea>
+        </div>
+        <div class="mb-3">
+            <label for="instructions" class="form-label">Instructions:</label>
+            <textarea id="instructions" name="instructions" class="form-control" autocomplete="off" rows="4" required></textarea>
+        </div>
+        <div class="text-center">
+            <button type="submit" class="btn btn-outline-success">Submit</button>
+        </div>
+    </form>
+</div>
 
 
 <%- include("partials/footer.ejs")   %>

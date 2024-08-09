@@ -1,8 +1,9 @@
 <%- include("partials/header.ejs") %>
 
 <% for (var i = 0; i < recipesArray.length; i++) { %>
-    <div class="px-4 py-5 my-5 text-center">
-        <h1 class="display-5 fw-bold text-body-emphasis"><%= recipesArray[i].name %></h1>
+    <% const color =  i % 2 == 0 ? '#F2C3A9' : '#FFDAC0 ' ;%>
+    <div style="background-color: <%= color %>;" class="px-4 py-5 my-5 text-center">
+        <h1 class="display-5 text-body-emphasis"><%= recipesArray[i].name %></h1>
         <div class="col-lg-6 mx-auto">
             <p class="lead mb-4">
                 <% var ingredientsArray = recipesArray[i].ingredients.split(','); %>

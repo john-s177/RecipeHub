@@ -13,3 +13,6 @@
     display: block; /* Display each element on its own line */
     margin: 5px 0; /* Add some vertical spacing between elements */
 }
+.home-div{
+    background-color: #FFDAC0;
+}

@@ -1,21 +1,26 @@
-<%- include("partials/header.ejs")   %>
+<%- include("partials/header.ejs") %>
 
-<div class="bg-dark text-secondary px-4 py-5 text-center">
-    <div class="py-5">
-      <h1 class="display-5 fw-bold text-white">Your Favorite Recipes</h1>
-      <div class="col-lg-6 mx-auto">
-        <p class="fs-5 mb-4">In One Place.</p>
-        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-        <a href="/recipes">
-          <button type="button" class="btn btn-outline-info btn-lg px-4 me-sm-3 fw-bold">View Recipes</button>
-        </a>
-        <a href="/add">
-          <button type="button" class="btn btn-outline-light btn-lg px-4">Add Recipe</button>
-        </a>
+<div style = " background-color: #FFDAC0;"class = "home-div text-secondary px-4 py-5 text-center">
+    <div style="padding-top: 6.5rem; padding-bottom: 6.5rem;"   >
+        <h1 class="display-5 text-black">Access All Your Recipes</h1>
+        <div class="col-lg-6 mx-auto">
+            <p class="fs-5 mb-4">Through One Website.</p>
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                <a href="/recipes">
+                    <button type="button" class="btn btn-outline-info btn-lg px-4 me-sm-3 fw-bold">View Recipes</button>
+                </a>
+                <a href="/add">
+                    <button type="button" class="btn btn-outline-success btn-lg px-4">Add Recipe</button>
+                </a>
+                <a href="/edit">
+                    <button type="button" class="btn btn-outline-warning btn-lg px-4">Edit Recipe</button>
+                </a>
+                <a href="/remove">
+                  <button type="button" class="btn btn-outline-danger btn-lg px-4">Remove Recipe</button>
+              </a>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
+</div>
 
-
-<%- include("partials/footer.ejs")   %>
+<%- include("partials/footer.ejs") %>
