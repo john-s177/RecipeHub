@@ -31,6 +31,27 @@ app.get("/register", (req,res)=>{
     res.render("register.ejs")
 });
 
+app.post("/register", async (req,res) =>{
+    const name = req.body.name;
+    const email = req.body.email;
+    const password = req.body.password;
+
+    try{
+        const [rows] = await db.execute("select * from users where email = ?", [email])
+        if (rows.rows==0){
+            await db.execute("insert into users (name, email, password) values (?,?,?)", [name, email, password]);
+            res.render("index.ejs");
+        }
+        else{
+            const message="Email Already Exists, Please Login"
+            res.render("login.ejs", {message: message})
+        }
+    }
+    catch(err){
+        console.log(err)
+    }
+});
+
 app.get("/recipes", async (req, res) => {
     const [results] = await db.execute('SELECT * FROM recipes');
     res.render("recipes.ejs", { recipesArray: results });

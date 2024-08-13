@@ -45,14 +45,17 @@
 <body>
     <div class="container">
         <h1>Login</h1>
+        <% if (message) { %>
+            <h5><%= message %></h5>
+        <% } %>
         <form>
             <div class="mb-3">
                 <label for="email" class="form-label">Email</label>
-                <input type="email" class="form-control" id="email" name="email" size="30">
+                <input type="email" class="form-control" id="email" name="email" size="30" autocomplete="off" required>
             </div>
             <div class="mb-3">
                 <label for="password" class="form-label">Password</label>
-                <input type="password" class="form-control" id="password" name="password" size="30">
+                <input type="password" class="form-control" id="password" name="password" size="30" autocomplete="off" required>
             </div>
             <button type="submit" class="btn btn-peach w-100">Submit</button>
         </form>
