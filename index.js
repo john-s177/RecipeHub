@@ -27,6 +27,27 @@ app.get("/login", (req,res)=>{
     res.render("login.ejs")
 });
 
+app.post("/login", async (req,res)=>{
+    const email = req.body.email;
+    const password = req.body.password;
+    try{
+        const [rows] = await db.execute("select * from users where email = ?", [email])
+        if (rows.length>0){
+            const userFound = rows[0]
+            if (password == userFound.password){
+                res.render("index.ejs")
+            }
+        }
+        else{
+            const message="Email Doesn't Exist, Please Try Again"
+            res.render("login.ejs", {message})
+        }
+    }
+    catch(err){
+        console.log(err)
+    }
+});
+
 app.get("/register", (req,res)=>{
     res.render("register.ejs")
 });
@@ -38,13 +59,13 @@ app.post("/register", async (req,res) =>{
 
     try{
         const [rows] = await db.execute("select * from users where email = ?", [email])
-        if (rows.rows==0){
+        if (rows.length==0){
             await db.execute("insert into users (name, email, password) values (?,?,?)", [name, email, password]);
             res.render("index.ejs");
         }
         else{
             const message="Email Already Exists, Please Login"
-            res.render("login.ejs", {message: message})
+            res.render("login.ejs", {message})
         }
     }
     catch(err){

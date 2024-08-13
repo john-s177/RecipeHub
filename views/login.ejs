@@ -45,10 +45,10 @@
 <body>
     <div class="container">
         <h1>Login</h1>
-        <% if (message) { %>
+        <% if (locals.message) { %>
             <h5><%= message %></h5>
         <% } %>
-        <form>
+        <form action="/login" method="POST">
             <div class="mb-3">
                 <label for="email" class="form-label">Email</label>
                 <input type="email" class="form-control" id="email" name="email" size="30" autocomplete="off" required>
