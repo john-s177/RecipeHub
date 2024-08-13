@@ -20,7 +20,15 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 
 app.get("/", (req, res) => {
-    res.render("index.ejs");    
+    res.render("home.ejs");    
+});
+
+app.get("/login", (req,res)=>{
+    res.render("login.ejs")
+});
+
+app.get("/register", (req,res)=>{
+    res.render("register.ejs")
 });
 
 app.get("/recipes", async (req, res) => {
@@ -47,9 +55,6 @@ app.get("/search", async (req, res) => {
         res.status(500).send("Error fetching recipes. Please try again later.");
     }
 });
-
-
-
 
 app.get("/remove", (req, res) => {
     res.render("remove.ejs");
