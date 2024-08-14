@@ -2,6 +2,9 @@
 
 <div style = " background-color: #FFDAC0;"class = "home-div text-secondary px-4 py-5 text-center">
     <div style="padding-top: 6.5rem; padding-bottom: 6.5rem;"   >
+        <% if (locals.name) { %>
+            <h5>Hello, <%= name %></h5>
+        <% } %>
         <h1 class="display-5 text-black">Access All Your Recipes</h1>
         <div class="col-lg-6 mx-auto">
             <p class="fs-5 mb-4">Through One Website.</p>

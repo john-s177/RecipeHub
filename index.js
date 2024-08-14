@@ -2,10 +2,13 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import mysql from 'mysql2/promise';
 import bcrypt from "bcrypt";
+import session from "express-session";
+import passport from 'passport';
+import { Strategy } from "passport-local";
 
 const app = express();
 const port = 3000;
-const saltRounds = 10
+const saltRounds = 10;
 
 const db = await mysql.createConnection({
     host: 'localhost',
@@ -15,101 +18,134 @@ const db = await mysql.createConnection({
 });
 
 app.use(express.static("public"));
-
 app.use(bodyParser.urlencoded({ extended: true }));
-
 app.set('view engine', 'ejs');
 
+app.use(session({
+    secret: "secretword",
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+        maxAge: 1000 * 60 * 60 * 2,
+    }
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+
+
+
 app.get("/", (req, res) => {
-    res.render("home.ejs");    
-});
-
-app.get("/login", (req,res)=>{
-    res.render("login.ejs")
-});
-
-app.post("/login", async (req,res)=>{
-    const email = req.body.email;
-    const loginPassword = req.body.password;
-    try{
-        const [rows] = await db.execute("select * from users where email = ?", [email])
-        if (rows.length>0){
-            const userFound = rows[0]
-            const storedPassword = userFound.password;
-            bcrypt.compare(loginPassword, storedPassword, (err, result)=>{
-                if(err){
-                    console.log(err)
-                }
-                else{
-                    if(result){
-                        res.render("index.ejs");
-                    }
-                    else{
-                        res.render("login.ejs", {message: "Incorrect Password, Please Try Again" })
-                    }
-                }
-            })
-        }
-        else{
-            const message="Email Doesn't Exist, Please Try Again"
-            res.render("login.ejs", {message})
-        }
-    }
-    catch(err){
-        console.log(err)
+    if (req.isAuthenticated()) {
+        res.render("index.ejs");
+    } else {
+        res.render("home.ejs");
     }
 });
 
-app.get("/register", (req,res)=>{
-    res.render("register.ejs")
+app.get("/login", (req, res) => {
+    if (req.isAuthenticated()) {
+        res.render("index.ejs");
+    } else {
+        res.render("login.ejs");
+    }
 });
 
-app.post("/register", async (req,res) =>{
+app.post("/login", (req, res, next) => {
+    passport.authenticate("local", (err, user, info) => {
+        if (err) {
+            return next(err);
+        }
+        if (!user) {
+            console.log("Login failed:", info.message); // Log the message from `info`
+            return res.render("login.ejs", { message: info.message }); // Pass the info message to the view
+        }
+        req.login(user, (err) => {
+            if (err) {
+                return next(err);
+            }
+            console.log("Login successful, redirecting to /index");
+            return res.redirect("/index");
+            
+        });
+    })(req, res, next);
+});
+
+
+app.get("/register", (req, res) => {
+    if (req.isAuthenticated()) {
+        res.render("index.ejs");
+    } else {
+        res.render("register.ejs");
+    }
+});
+
+app.post("/register", async (req, res) => {
     const name = req.body.name;
     const email = req.body.email;
     const password = req.body.password;
 
-    try{
-        const [rows] = await db.execute("select * from users where email = ?", [email])
-        if (rows.length==0){
-            bcrypt.hash(password, saltRounds, async (err, hash)=>{
-                if (err){
-                    console.log("Error Hashing Password", err)
+    try {
+        const [rows] = await db.execute("SELECT * FROM users WHERE email = ?", [email]);
+        if (rows.length === 0) {
+            const hash = await bcrypt.hash(password, saltRounds);
+            await db.execute("INSERT INTO users (name, email, password) VALUES (?, ?, ?)", [name, email, hash]);
+
+            const [newUser] = await db.execute("SELECT * FROM users WHERE email = ?", [email]);
+            const user = newUser[0];
+
+            req.login(user, (err) => {
+                if (err) {
+                    console.log("Login error: ", err);
+                    return res.redirect("/login");
                 }
-                else{
-                    await db.execute("insert into users (name, email, password) values (?,?,?)", [name, email, hash]);
-                    res.render("index.ejs");
-                }
+                res.redirect("/index");
             });
+        } else {
+            const message = "Email already exists, please log in.";
+            res.render("login.ejs", { message });
         }
-        else{
-            const message="Email Already Exists, Please Login"
-            res.render("login.ejs", {message})
-        }
-    }
-    catch(err){
-        console.log(err)
+    } catch (err) {
+        console.log("Error during registration: ", err);
+        res.status(500).send("Internal Server Error");
     }
 });
 
 app.get("/recipes", async (req, res) => {
-    const [results] = await db.execute('SELECT * FROM recipes');
-    res.render("recipes.ejs", { recipesArray: results });
+    if (req.isAuthenticated()) {
+        const [results] = await db.execute('SELECT * FROM recipes');
+        res.render("recipes.ejs", { recipesArray: results });
+    } else {
+        res.render("login.ejs", { message: "Please Login to View the Requested Page" });
+    }
 });
 
 app.get("/add", (req, res) => {
-    res.render("add.ejs");
+    if (req.isAuthenticated()) {
+        res.render("add.ejs");
+    } else {
+        res.render("login.ejs", { message: "Please Login to View the Requested Page" });
+    }
+});
+
+app.get("/index", (req, res, user) => {
+    if (req.isAuthenticated()) {
+        res.render("index.ejs", {name: req.user.name});
+    } else {
+        res.render("login.ejs", { message: "Please Login to View the Requested Page" });
+    }
 });
 
 app.get("/search", async (req, res) => {
     try {
-        const recipeName = req.query.q; 
+        const recipeName = req.query.q;
         const [results] = await db.execute('SELECT * FROM recipes WHERE name LIKE ?', [`%${recipeName}%`]);
 
         if (results.length > 0) {
             res.render("search.ejs", { recipe: results });
         } else {
-            res.render("search.ejs", { recipe: [] }); 
+            res.render("search.ejs", { recipe: [] });
         }
     } catch (error) {
         console.error("Error fetching recipes:", error);
@@ -118,7 +154,11 @@ app.get("/search", async (req, res) => {
 });
 
 app.get("/remove", (req, res) => {
-    res.render("remove.ejs");
+    if (req.isAuthenticated()) {
+        res.render("remove.ejs");
+    } else {
+        res.render("login.ejs", { message: "Please Login to View the Requested Page" });
+    }
 });
 
 app.post("/removeRecipe", async (req, res) => {
@@ -131,11 +171,6 @@ app.post("/removeRecipe", async (req, res) => {
 
 app.post('/submitRecipe', async (req, res) => {
     const { name, ingredients, instructions } = req.body;
-    const newRecipe = {
-        name: name,
-        ingredients: ingredients,
-        instructions: instructions
-    };
     await db.execute('INSERT INTO recipes (name, ingredients, instructions) VALUES (?, ?, ?)', [name, ingredients, instructions]);
     res.redirect("/recipes");
 });
@@ -143,6 +178,64 @@ app.post('/submitRecipe', async (req, res) => {
 app.get("/response", (req, res) => {
     const message = req.query.message;
     res.render("response", { message: message });
+});
+
+passport.use(new Strategy({ usernameField: 'email' }, async function verify(email, password, cb) {
+    try {
+        // Log the email being used for login
+        console.log("Attempting login with email:", email);
+
+        const [rows] = await db.execute("SELECT * FROM users WHERE email = ?", [email]);
+
+        // Log the retrieved rows
+        console.log("Database query result:", rows);
+
+        if (rows.length > 0) {
+            const user = rows[0];
+            console.log("User found:", user);
+
+            // Log the password comparison
+            const result = await bcrypt.compare(password, user.password);
+            console.log("Password comparison result:", result);
+
+            if (result) {
+                return cb(null, user);
+            } else {
+                console.log("Incorrect password");
+                return cb(null, false, { message: "Incorrect password, try again." });
+            }
+        } else {
+            console.log("Email doesn't exist");
+            return cb(null, false, { message: "Email doesn't exist." });
+        }
+    } catch (err) {
+        console.log("Error in authentication:", err);
+        return cb(err);
+    }
+}));
+
+passport.serializeUser((user, cb) => {
+    console.log("Serializing user:", user); // Debugging line
+    cb(null, user.id); // Serialize by user ID
+});
+
+passport.deserializeUser(async (id, cb) => {
+    console.log("Deserializing user with ID:", id); // Debugging line
+    try {
+        const [rows] = await db.execute("SELECT * FROM users WHERE id = ?", [id]);
+        if (rows.length > 0) {
+            cb(null, rows[0]);
+        } else {
+            cb(new Error("User not found"));
+        }
+    } catch (err) {
+        cb(err);
+    }
+});
+
+app.use((req, res, next) => {
+    console.log("Request received for:", req.url);
+    next();
 });
 
 app.listen(port, () => {
@@ -165,7 +258,6 @@ app.post('/editRecipe/:id', async (req, res) => {
     }
 });
 
-
 app.post("/editRecipe", async (req, res) => {
     const recipeName = req.body.recipeName;
     try {
@@ -181,4 +273,3 @@ app.post("/editRecipe", async (req, res) => {
         res.status(500).send("Error finding recipe. Please try again later.");
     }
 });
-
