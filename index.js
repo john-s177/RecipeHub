@@ -1,10 +1,11 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import mysql from 'mysql2/promise';
+import bcrypt from "bcrypt";
 
 const app = express();
-
 const port = 3000;
+const saltRounds = 10
 
 const db = await mysql.createConnection({
     host: 'localhost',
@@ -29,14 +30,25 @@ app.get("/login", (req,res)=>{
 
 app.post("/login", async (req,res)=>{
     const email = req.body.email;
-    const password = req.body.password;
+    const loginPassword = req.body.password;
     try{
         const [rows] = await db.execute("select * from users where email = ?", [email])
         if (rows.length>0){
             const userFound = rows[0]
-            if (password == userFound.password){
-                res.render("index.ejs")
-            }
+            const storedPassword = userFound.password;
+            bcrypt.compare(loginPassword, storedPassword, (err, result)=>{
+                if(err){
+                    console.log(err)
+                }
+                else{
+                    if(result){
+                        res.render("index.ejs");
+                    }
+                    else{
+                        res.render("login.ejs", {message: "Incorrect Password, Please Try Again" })
+                    }
+                }
+            })
         }
         else{
             const message="Email Doesn't Exist, Please Try Again"
@@ -60,8 +72,15 @@ app.post("/register", async (req,res) =>{
     try{
         const [rows] = await db.execute("select * from users where email = ?", [email])
         if (rows.length==0){
-            await db.execute("insert into users (name, email, password) values (?,?,?)", [name, email, password]);
-            res.render("index.ejs");
+            bcrypt.hash(password, saltRounds, async (err, hash)=>{
+                if (err){
+                    console.log("Error Hashing Password", err)
+                }
+                else{
+                    await db.execute("insert into users (name, email, password) values (?,?,?)", [name, email, hash]);
+                    res.render("index.ejs");
+                }
+            });
         }
         else{
             const message="Email Already Exists, Please Login"
