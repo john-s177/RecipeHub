@@ -27,7 +27,9 @@
             <form id="searchForm" class="col-12 col-lg-auto d-flex align-items-center mb-3 mb-lg-0 me-lg-3" action="/search" method="GET">
                 <input id="searchInput" type="search" class="form-control me-2" name="q" placeholder="Search..." aria-label="Search", autocomplete="off">
                 <button type="submit" class="btn btn-outline-secondary">Search</button>
-                <button style="margin-left: 10px;" href="/logout" class="btn btn-outline-danger">Logout</button>
+            </form>
+            <form action="/logout">
+                <button type="submit" class="buttons btn btn-outline-danger">Logout</button>
             </form>
         </div>
     </div>
