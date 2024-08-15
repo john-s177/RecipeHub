@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import session from "express-session";
 import passport from 'passport';
 import { Strategy } from "passport-local";
+import GoogleStrategy from "passport-google-oauth2";
 import env from "dotenv";
 
 const app = express();
@@ -120,6 +121,15 @@ app.get("/recipes", async (req, res) => {
     }
 });
 
+app.get("/auth/google", passport.authenticate("google", {
+    scope: ["profile", "email"]
+}));
+
+app.get("/auth/google/RecipeHub", passport.authenticate("google", {
+    successRedirect: "/index",
+    failureRedirect: "/login",
+}));
+
 app.get("/add", (req, res) => {
     if (req.isAuthenticated()) {
         res.render("add.ejs");
@@ -179,21 +189,25 @@ app.get("/response", (req, res) => {
     res.render("response", { message: message });
 });
 
-passport.use(new Strategy({ usernameField: 'email' }, async function verify(email, password, cb) {
+app.get("/logout", (req,res)=>{
+    req.logout((err)=>{
+        if (err) console.log(err);
+        res.redirect("/")
+    });
+});
+
+passport.use("local", new Strategy({ usernameField: 'email' }, async function verify(email, password, cb) {
     try {
-        // Log the email being used for login
         console.log("Attempting login with email:", email);
 
         const [rows] = await db.execute("SELECT * FROM users WHERE email = ?", [email]);
 
-        // Log the retrieved rows
         console.log("Database query result:", rows);
 
         if (rows.length > 0) {
             const user = rows[0];
             console.log("User found:", user);
 
-            // Log the password comparison
             const result = await bcrypt.compare(password, user.password);
             console.log("Password comparison result:", result);
 
@@ -213,13 +227,36 @@ passport.use(new Strategy({ usernameField: 'email' }, async function verify(emai
     }
 }));
 
+passport.use("google", new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: "http://localhost:3000/auth/google/RecipeHub",
+    userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo"
+    }, async (accessToken, refreshToken, profile, cb)=>{
+        console.log(profile);
+        try{
+            const [result]  = await db.execute("select * from users where email = ?", [profile.email]);
+            if (result.length === 0){
+                const newUser = await db.execute("insert into users (name, email, password) values (?,?,?)", [profile.name["givenName"], profile.email, "**Google**"]);
+                cb(null, newUser[0])
+            } 
+            else{
+                cb(null, result[0]);
+            }
+        }
+        catch(err){
+            cb(err);
+        }
+    }
+));
+
 passport.serializeUser((user, cb) => {
-    console.log("Serializing user:", user); // Debugging line
-    cb(null, user.id); // Serialize by user ID
+    console.log("Serializing user:", user); 
+    cb(null, user.id); 
 });
 
 passport.deserializeUser(async (id, cb) => {
-    console.log("Deserializing user with ID:", id); // Debugging line
+    console.log("Deserializing user with ID:", id);
     try {
         const [rows] = await db.execute("SELECT * FROM users WHERE id = ?", [id]);
         if (rows.length > 0) {
