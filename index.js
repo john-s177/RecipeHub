@@ -114,7 +114,7 @@ app.post("/register", async (req, res) => {
 
 app.get("/recipes", async (req, res) => {
     if (req.isAuthenticated()) {
-        const [results] = await db.execute('SELECT * FROM recipes');
+        const [results] = await db.execute('SELECT * FROM recipes where user_id = ?', [req.user.id]);
         res.render("recipes.ejs", { recipesArray: results });
     } else {
         res.render("login.ejs", { message: "Please Login to View the Requested Page" });
@@ -149,7 +149,7 @@ app.get("/index", (req, res, user) => {
 app.get("/search", async (req, res) => {
     try {
         const recipeName = req.query.q;
-        const [results] = await db.execute('SELECT * FROM recipes WHERE name LIKE ?', [`%${recipeName}%`]);
+        const [results] = await db.execute('SELECT * FROM recipes WHERE name LIKE ? and user_id = ?', [`%${recipeName}%`, req.user.id]);
 
         if (results.length > 0) {
             res.render("search.ejs", { recipe: results });
@@ -172,15 +172,19 @@ app.get("/remove", (req, res) => {
 
 app.post("/removeRecipe", async (req, res) => {
     const recipeName = req.body.recipeName;
-    const [result] = await db.execute('DELETE FROM recipes WHERE name = ?', [recipeName]);
-    let response = result.affectedRows ? "Recipe removed successfully" : "Recipe Not Found!";
-    console.log(response);
-    res.redirect("/recipes");
+    const [result] = await db.execute('DELETE FROM recipes WHERE name = ? and user_id = ?', [recipeName, req.user.id]);
+    let response = result.affectedRows// ? "Recipe removed successfully" : "Recipe Not Found!";
+    if (response){
+        res.redirect("/recipes")
+    }
+    else{
+        res.render("remove.ejs", {message: "Recipe Not Found!"})
+    }
 });
 
 app.post('/submitRecipe', async (req, res) => {
     const { name, ingredients, instructions } = req.body;
-    await db.execute('INSERT INTO recipes (name, ingredients, instructions) VALUES (?, ?, ?)', [name, ingredients, instructions]);
+    await db.execute('INSERT INTO recipes (name, ingredients, instructions, user_id) VALUES (?, ?, ?, ?)', [name, ingredients, instructions, req.user.id]);
     res.redirect("/recipes");
 });
 
@@ -285,19 +289,24 @@ app.get("/edit", (req, res) => {
 app.post('/editRecipe/:id', async (req, res) => {
     const id = req.params.id;
     const { name, ingredients, instructions } = req.body;
+    if (req.isAuthenticated()){
     try {
-        await db.execute('UPDATE recipes SET name = ?, ingredients = ?, instructions = ? WHERE id = ?', [name, ingredients, instructions, id]);
+        await db.execute('UPDATE recipes SET name = ?, ingredients = ?, instructions = ? WHERE id = ? and user_id = ?', [name, ingredients, instructions, id, req.user.id]);
         res.redirect('/recipes');
     } catch (error) {
         console.error("Error updating recipe:", error);
         res.status(500).send("Error updating recipe. Please try again later.");
+    }
+    }
+    else{
+        res.render("login.ejs", { message: "Please Login to View the Requested Page" });
     }
 });
 
 app.post("/editRecipe", async (req, res) => {
     const recipeName = req.body.recipeName;
     try {
-        const [rows] = await db.execute('SELECT * FROM recipes WHERE name = ?', [recipeName]);
+        const [rows] = await db.execute('SELECT * FROM recipes WHERE name = ? and user_id = ?', [recipeName, req.user.id]);
         if (rows.length > 0) {
             const recipe = rows[0];
             res.render("editRecipe.ejs", { recipe: recipe });
