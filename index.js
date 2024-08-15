@@ -5,16 +5,18 @@ import bcrypt from "bcrypt";
 import session from "express-session";
 import passport from 'passport';
 import { Strategy } from "passport-local";
+import env from "dotenv";
 
 const app = express();
 const port = 3000;
-const saltRounds = 10;
+const saltRounds = process.env.SALT_ROUNDS;
+env.config();
 
 const db = await mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '123456',
-    database: 'recipes'
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB
 });
 
 app.use(express.static("public"));
@@ -22,20 +24,17 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 
 app.use(session({
-    secret: "secretword",
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
     cookie: {
-        maxAge: 1000 * 60 * 60 * 2,
+        maxAge: 1000*60*60*2
     }
 }));
 
 app.use(passport.initialize());
 app.use(passport.session());
-
-
-
-
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
 app.get("/", (req, res) => {
     if (req.isAuthenticated()) {
         res.render("index.ejs");
@@ -89,7 +88,7 @@ app.post("/register", async (req, res) => {
     try {
         const [rows] = await db.execute("SELECT * FROM users WHERE email = ?", [email]);
         if (rows.length === 0) {
-            const hash = await bcrypt.hash(password, saltRounds);
+            const hash = bcrypt.hash(password, saltRounds);
             await db.execute("INSERT INTO users (name, email, password) VALUES (?, ?, ?)", [name, email, hash]);
 
             const [newUser] = await db.execute("SELECT * FROM users WHERE email = ?", [email]);
