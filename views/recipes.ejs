@@ -1,6 +1,8 @@
 <%- include("partials/header.ejs") %>
 
-
+<% if (recipesArray.length === 0) {%>
+    <h6 style="text-align: center; margin-top: 15px;">No Recipes Found. Start <a href="/add">Adding</a> Now!</h6>
+<%}%>
 <% for (var i = 0; i < recipesArray.length; i++) { %>
     <% const color =  i % 2 == 0 ? 'rgba(242, 195, 169, 0.7)' : 'rgba(255, 218, 192, 0.7) ' ;%>
     <div style="background-color: <%= color %>; " class="px-4 py-5 my-5 text-center">

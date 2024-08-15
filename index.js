@@ -10,7 +10,7 @@ import env from "dotenv";
 
 const app = express();
 const port = 3000;
-const saltRounds = process.env.SALT_ROUNDS;
+const saltRounds = parseInt(process.env.SALT_ROUNDS);
 env.config();
 
 const db = await mysql.createConnection({
@@ -89,7 +89,7 @@ app.post("/register", async (req, res) => {
     try {
         const [rows] = await db.execute("SELECT * FROM users WHERE email = ?", [email]);
         if (rows.length === 0) {
-            const hash = bcrypt.hash(password, saltRounds);
+            const hash = await bcrypt.hash(password, saltRounds);
             await db.execute("INSERT INTO users (name, email, password) VALUES (?, ?, ?)", [name, email, hash]);
 
             const [newUser] = await db.execute("SELECT * FROM users WHERE email = ?", [email]);
@@ -311,7 +311,7 @@ app.post("/editRecipe", async (req, res) => {
             const recipe = rows[0];
             res.render("editRecipe.ejs", { recipe: recipe });
         } else {
-            res.render("edit.ejs", { error: "Recipe not found!" });
+            res.render("edit.ejs", { message: "Recipe not found!" });
         }
     } catch (error) {
         console.error("Error finding recipe:", error);

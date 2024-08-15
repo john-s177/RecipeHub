@@ -1,5 +1,9 @@
 <%- include("partials/header.ejs") %>
 
+<% if (locals.message) { %>
+    <h6 style="text-align: center; margin-top: 10px;"><%= message %></h6>
+<% } %>
+
 <div class="d-flex justify-content-center mt-4">
     <form action="/editRecipe" method="POST" class="w-50">
         <div class="mb-3">
