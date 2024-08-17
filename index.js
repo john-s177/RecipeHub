@@ -152,7 +152,7 @@ app.get("/search", async (req, res) => {
         const [results] = await db.execute('SELECT * FROM recipes WHERE name LIKE ? and user_id = ?', [`%${recipeName}%`, req.user.id]);
 
         if (results.length > 0) {
-            res.render("search.ejs", { recipe: results });
+            res.render("recipes.ejs", { recipesArray: results });
         } else {
             res.render("search.ejs", { recipe: [] });
         }
@@ -173,7 +173,7 @@ app.get("/remove", (req, res) => {
 app.post("/removeRecipe", async (req, res) => {
     const recipeName = req.body.recipeName;
     const [result] = await db.execute('DELETE FROM recipes WHERE name = ? and user_id = ?', [recipeName, req.user.id]);
-    let response = result.affectedRows// ? "Recipe removed successfully" : "Recipe Not Found!";
+    let response = result.affectedRows;
     if (response){
         res.redirect("/recipes")
     }
@@ -307,6 +307,22 @@ app.post("/editRecipe", async (req, res) => {
     const recipeName = req.body.recipeName;
     try {
         const [rows] = await db.execute('SELECT * FROM recipes WHERE name = ? and user_id = ?', [recipeName, req.user.id]);
+        if (rows.length > 0) {
+            const recipe = rows[0];
+            res.render("editRecipe.ejs", { recipe: recipe });
+        } else {
+            res.render("edit.ejs", { message: "Recipe not found!" });
+        }
+    } catch (error) {
+        console.error("Error finding recipe:", error);
+        res.status(500).send("Error finding recipe. Please try again later.");
+    }
+});
+
+app.post("/editRecipeID", async (req, res) => {
+    const recipeID = req.body.id;
+    try {
+        const [rows] = await db.execute('SELECT * FROM recipes where id = ?', [recipeID]);
         if (rows.length > 0) {
             const recipe = rows[0];
             res.render("editRecipe.ejs", { recipe: recipe });
