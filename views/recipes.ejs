@@ -20,6 +20,10 @@
         <div class="col-lg-6 mx-auto">
             <p class="lead"><%= recipesArray[i].instructions %></p>
         </div>
+        <form action="/removeRecipeID" method="POST">
+            <input type="hidden" name="id" value="<%= recipesArray[i].id %>">
+            <button style="float: right; margin-left: 7px;" type="submit" class="btn btn-outline-danger">Delete</button>
+        </form>
         <form action="/editRecipeID" method="POST">
             <input type="hidden" name="id" value="<%= recipesArray[i].id %>">
             <button style="float: right;" type="submit" class="btn btn-outline-secondary">Edit</button>

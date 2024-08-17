@@ -182,6 +182,13 @@ app.post("/removeRecipe", async (req, res) => {
     }
 });
 
+app.post("/removeRecipeID", async (req, res) => {
+    const recipeID = req.body.id;
+    const [result] = await db.execute('select name from recipes WHERE id = ?', [recipeID]);
+    res.render("remove.ejs", {name: result[0].name})
+    console.log(result[0].name)
+});
+
 app.post('/submitRecipe', async (req, res) => {
     const { name, ingredients, instructions } = req.body;
     await db.execute('INSERT INTO recipes (name, ingredients, instructions, user_id) VALUES (?, ?, ?, ?)', [name, ingredients, instructions, req.user.id]);
